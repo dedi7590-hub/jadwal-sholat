@@ -2,11 +2,11 @@ name: Update Prayer Times iCal
 
 permissions:
   contents: write
-  
+
 on:
   schedule:
-    - cron: '0 0 1 * *' # Berjalan otomatis setiap tanggal 1 pukul 00:00 UTC
-  workflow_dispatch: # Memungkinkan Anda menjalankan manual lewat tombol web GitHub
+    - cron: '0 0 1 * *'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -26,11 +26,8 @@ jobs:
       - name: Run Python script
         run: python sholat_to_ics.py
 
-      - name: Commit and push generated .ics file
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git pull origin main --rebase
-          git add *.ics
-          git commit -m "Auto-update monthly prayer times .ics" || echo "No changes to commit"
-          git push origin main
+      - name: Auto commit and push changed files
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Auto-update monthly prayer times .ics"
+          file_pattern: "*.ics"
