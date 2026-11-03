@@ -1,11 +1,15 @@
 import requests
 from icalendar import Calendar, Event
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo  # Modul zona waktu bawaan Python
 
 def generate_prayer_ics():
-    # 1. Konfigurasi Parameter API (Contoh: Bulan & Tahun berjalan, Wilayah Jakarta Selatan)
+    # 1. Konfigurasi Parameter API
     tahun = datetime.now().year
     bulan = datetime.now().month
+    
+    # Tentukan zona waktu lokal WIB (Jakarta)
+    local_tz = ZoneInfo("Asia/Jakarta")
     
     # Menggunakan Aladhan API untuk wilayah Jakarta (Method 5 = Kemenag RI)
     url = f"https://api.aladhan.com/v1/calendarByCity/{tahun}/{bulan}"
@@ -29,7 +33,6 @@ def generate_prayer_ics():
     cal.add('prodid', '-//Jadwal Sholat Jakarta Selatan iCal Generator//id//')
     cal.add('version', '2.0')
 
-    # Daftar sholat yang ingin dimasukkan ke kalender
     target_sholats = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha']
     nama_id = {
         'Fajr': 'Subuh',
@@ -49,9 +52,10 @@ def generate_prayer_ics():
                 # Waktu dari API berformat "HH:MM (+07:00)"
                 waktu_raw = timings[sholat].split(' ')[0] 
                 
-                # Gabungkan tanggal dan jam
+                # Gabungkan tanggal dan jam, lalu pasang tzinfo=local_tz
                 dt_str = f"{tanggal_str} {waktu_raw}"
-                dt_start = datetime.strptime(dt_str, "%d-%m-%Y %H:%M")
+                dt_start = datetime.strptime(dt_str, "%d-%m-%Y %H:%M").replace(tzinfo=local_tz)
+                
                 # Durasi event sholat diatur 10 menit
                 dt_end = dt_start + timedelta(minutes=10)
 
@@ -62,7 +66,6 @@ def generate_prayer_ics():
                 event.add('dtend', dt_end)
                 event.add('description', f"Waktu sholat {nama_id[sholat]} untuk wilayah Jakarta Selatan.")
                 
-                # Tambahkan event ke kalendar utama
                 cal.add_component(event)
 
     # 4. Simpan ke dalam file .ics
