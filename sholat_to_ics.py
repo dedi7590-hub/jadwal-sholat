@@ -8,8 +8,8 @@ def generate_prayer_ics():
     tahun = datetime.now().year
     bulan = datetime.now().month
     
-    # Tentukan zona waktu lokal WIB (Jakarta)
     local_tz = ZoneInfo("Asia/Jakarta")
+    utc_tz = ZoneInfo("UTC")
     
     # Menggunakan Aladhan API untuk wilayah Jakarta (Method 5 = Kemenag RI)
     url = f"https://api.aladhan.com/v1/calendarByCity/{tahun}/{bulan}"
@@ -51,24 +51,22 @@ def generate_prayer_ics():
             if sholat in timings:
                 waktu_raw = timings[sholat].split(' ')[0] 
                 
-                # Gabungkan tanggal dan jam, pasang zona waktu Asia/Jakarta
+                # Buat waktu lokal WIB
                 dt_str = f"{tanggal_str} {waktu_raw}"
-                dt_start = datetime.strptime(dt_str, "%d-%m-%Y %H:%M").replace(tzinfo=local_tz)
+                dt_local = datetime.strptime(dt_str, "%d-%m-%Y %H:%M").replace(tzinfo=local_tz)
                 
-                # Durasi event sholat diatur 10 menit
-                dt_end = dt_start + timedelta(minutes=10)
+                # Konversi waktu lokal ke UTC agar Google Calendar membacanya dengan presisi mutlak
+                dt_start_utc = dt_local.astimezone(utc_tz)
+                dt_end_utc = dt_start_utc + timedelta(minutes=10)
 
                 # Buat Event Kalender
                 event = Event()
                 event.add('summary', f"Sholat {nama_id[sholat]}")
-                event.add('dtstart', dt_start)
-                event.add('dtend', dt_end)
+                event.add('dtstart', dt_start_utc)
+                event.add('dtend', dt_end_utc)
                 event.add('description', f"Waktu sholat {nama_id[sholat]} untuk wilayah Jakarta Selatan.")
                 
                 cal.add_component(event)
-
-    # PENTING: Tambahkan komponen VTIMEZONE secara otomatis agar dibaca benar oleh Google Calendar
-    cal.add_missing_timezones()
 
     # 4. Simpan ke dalam file .ics
     nama_file = "jadwal_sholat_jakarta_selatan.ics"
