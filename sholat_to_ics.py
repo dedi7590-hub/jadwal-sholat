@@ -51,11 +51,9 @@ def generate_prayer_ics():
             if sholat in timings:
                 waktu_raw = timings[sholat].split(' ')[0] 
                 
-                # Buat waktu lokal WIB
+                # Buat waktu lokal WIB, lalu konversi langsung ke UTC
                 dt_str = f"{tanggal_str} {waktu_raw}"
                 dt_local = datetime.strptime(dt_str, "%d-%m-%Y %H:%M").replace(tzinfo=local_tz)
-                
-                # Konversi waktu lokal ke UTC agar Google Calendar membacanya dengan presisi mutlak
                 dt_start_utc = dt_local.astimezone(utc_tz)
                 dt_end_utc = dt_start_utc + timedelta(minutes=10)
 
