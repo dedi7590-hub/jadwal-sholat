@@ -1,7 +1,7 @@
 import requests
 from icalendar import Calendar, Event
 from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo  # Modul zona waktu bawaan Python
+from zoneinfo import ZoneInfo
 
 def generate_prayer_ics():
     # 1. Konfigurasi Parameter API
@@ -49,10 +49,9 @@ def generate_prayer_ics():
 
         for sholat in target_sholats:
             if sholat in timings:
-                # Waktu dari API berformat "HH:MM (+07:00)"
                 waktu_raw = timings[sholat].split(' ')[0] 
                 
-                # Gabungkan tanggal dan jam, lalu pasang tzinfo=local_tz
+                # Gabungkan tanggal dan jam, pasang zona waktu Asia/Jakarta
                 dt_str = f"{tanggal_str} {waktu_raw}"
                 dt_start = datetime.strptime(dt_str, "%d-%m-%Y %H:%M").replace(tzinfo=local_tz)
                 
@@ -68,8 +67,11 @@ def generate_prayer_ics():
                 
                 cal.add_component(event)
 
+    # PENTING: Tambahkan komponen VTIMEZONE secara otomatis agar dibaca benar oleh Google Calendar
+    cal.add_missing_timezones()
+
     # 4. Simpan ke dalam file .ics
-    nama_file = f"jadwal_sholat_jakarta_selatan.ics"
+    nama_file = "jadwal_sholat_jakarta_selatan.ics"
     with open(nama_file, 'wb') as f:
         f.write(cal.to_ical())
 
