@@ -1,0 +1,32 @@
+name: Update Prayer Times iCal
+
+on:
+  schedule:
+    - cron: '0 0 1 * *' # Berjalan otomatis setiap tanggal 1 pukul 00:00 UTC
+  workflow_dispatch: # Memungkinkan Anda menjalankan manual lewat tombol web GitHub
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install requests icalendar
+
+      - name: Run Python script
+        run: python sholat_to_ics.py
+
+      - name: Commit and push generated .ics file
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add *.ics
+          git commit -m "Auto-update monthly prayer times .ics" || echo "No changes to commit"
+          git push
