@@ -1,5 +1,8 @@
 name: Update Prayer Times iCal
 
+permissions:
+  contents: write
+  
 on:
   schedule:
     - cron: '0 0 1 * *' # Berjalan otomatis setiap tanggal 1 pukul 00:00 UTC
